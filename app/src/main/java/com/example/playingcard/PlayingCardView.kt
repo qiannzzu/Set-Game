@@ -2,15 +2,8 @@ package com.example.playingcard
 
 import android.content.Context
 import android.graphics.*
-import android.graphics.drawable.Drawable
-import android.text.Layout
-import android.text.StaticLayout
-import android.text.TextPaint
 import android.util.AttributeSet
-import android.view.GestureDetector
-import android.view.MotionEvent
 import android.view.View
-import android.widget.Toast
 
 /**
  * TODO: document your custom view class.
@@ -23,8 +16,6 @@ class PlayingCardView : View {
         val colors = listOf("Red","Green","Purple")
         val CARD_STD_HEIGHT = 240.00f
         val CORNER_RADIUS = 12.0f
-        val CARD_SCALE_FACTOR = 0.85f
-        val TEXT_STD_SIZE = 14.0f
     }
 
     private  val cornerScaleFactor: Float
@@ -99,6 +90,86 @@ class PlayingCardView : View {
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
 
+        val rect = setBackGroundCard(canvas)
+
+        // Set up the paint style based on the shade value
+        val patternPaint = Paint().apply {
+            style = when (shade) {
+                "Solid","Striped" -> Paint.Style.FILL
+                "Open" -> Paint.Style.STROKE
+                else -> Paint.Style.FILL
+            }
+            isAntiAlias = true
+        }
+
+        // Determine the number of shapes to draw based on the rank
+        val numShapesToDraw = when (rank) {
+            "One" -> 1
+            "Two" -> 2
+            "Three" -> 3
+            else -> 0
+        }
+
+        // Set the solid color pattern
+        patternPaint.color = when (colorX) {
+            "Red" -> Color.parseColor("#EB6C93") // Pink
+            "Green" -> Color.parseColor("#69CB5C") // Green
+            "Purple" -> Color.parseColor("#D9B8F1") // Purple
+            else -> Color.parseColor("#AB817B") // Rose, Default color if "color" has an unknown value
+        }
+        // Get the shape path and its dimensions
+        val shapePathData = getShapePath(shape.toString())
+        val shapePath = shapePathData.first
+        val shapeWidth = shapePathData.second
+        val shapeHeight = shapePathData.third
+
+        val patternSpacing = 10f
+
+        val (startX, startY) = setStartXY(rect, shapeHeight, patternSpacing, shapeWidth, numShapesToDraw)
+
+        // Draw the pattern based on the shade value
+        for (i in 0 until numShapesToDraw) {
+            canvas.save()
+            canvas.translate(startX, startY + i * (shapeHeight + patternSpacing))
+
+            when (shade) {
+                "Solid" -> canvas.drawPath(shapePath, patternPaint)
+                "Open" -> {
+                    patternPaint.strokeWidth = 7.0f
+                    canvas.drawPath(shapePath, patternPaint)
+                }
+                "Striped" -> drawStripedPattern(canvas, shapePath, patternPaint)
+            }
+
+            canvas.restore()
+        }
+
+    }
+
+    private fun setStartXY(
+        rect: RectF,
+        shapeHeight: Float,
+        patternSpacing: Float,
+        shapeWidth: Float,
+        numShapesToDraw: Int
+    ): Pair<Float, Float> {
+        val centerX = rect.centerX()
+        val centerY = rect.centerY()
+
+        // Calculate the number of shapes that can fit in the card's height
+        val numShapesHeight = (rect.height() / (shapeHeight + patternSpacing)).toInt()
+
+        // Calculate the total height occupied by the shapes
+        val totalShapesHeight = numShapesHeight * (shapeHeight + patternSpacing) - patternSpacing
+
+        // Calculate the starting position of the pattern to align it at the center
+        val startX = centerX - shapeWidth / 2
+        val startY =
+            centerY - totalShapesHeight / 2 + (totalShapesHeight - numShapesToDraw * (shapeHeight + patternSpacing)) / 2
+        return Pair(startX, startY)
+    }
+
+    private fun setBackGroundCard(canvas: Canvas): RectF {
         val path = Path()
         val rect = RectF(0f, 0f, width.toFloat(), height.toFloat())
         path.addRoundRect(rect, cornerRadius, cornerRadius, Path.Direction.CW)
@@ -119,171 +190,7 @@ class PlayingCardView : View {
             mPaint.color = Color.BLACK
         }
         canvas.drawPath(path, mPaint)
-
-        // Define the Morandi color palette
-        val morandiColors = listOf(
-            Color.parseColor("#EB6C93"), // Pink
-            Color.parseColor("#69CB5C"), // Green
-            Color.parseColor("#D9B8F1"), // Purple
-            Color.parseColor("#AB817B")  // Rose
-        )
-
-        // Set up the paint style based on the shade value
-        val patternPaint = Paint().apply {
-            style = when (shade) {
-                "Solid","Striped" -> Paint.Style.FILL
-                "Open" -> Paint.Style.STROKE
-                else -> Paint.Style.FILL
-            }
-            isAntiAlias = true
-        }
-
-        // Draw the pattern based on the shade value
-        if (shade == "Solid") {
-            // Set the solid color pattern
-            patternPaint.color = when (colorX) {
-                "Red" -> morandiColors[0]
-                "Green" -> morandiColors[1]
-                "Purple" -> morandiColors[2]
-                else -> morandiColors[3] // Default color if "color" has an unknown value
-            }
-
-            val centerX = rect.centerX()
-            val centerY = rect.centerY()
-
-            // Get the shape path and its dimensions
-            val shapePathData = getShapePath(shape.toString())
-            val shapePath = shapePathData.first
-            val shapeWidth = shapePathData.second
-            val shapeHeight = shapePathData.third
-            val patternSpacing = 10f
-
-            // Calculate the number of shapes that can fit in the card's height
-            val numShapesHeight = (rect.height() / (shapeHeight + patternSpacing)).toInt()
-
-            // Calculate the total height occupied by the shapes
-            val totalShapesHeight = numShapesHeight * (shapeHeight + patternSpacing) - patternSpacing
-
-            // Determine the number of shapes to draw based on the rank
-            val numShapesToDraw = when (rank) {
-                "One" -> 1
-                "Two" -> 2
-                "Three" -> 3
-                else -> 0
-            }
-
-            // Calculate the starting position of the pattern to align it at the center
-            val startX = centerX - shapeWidth / 2
-            val startY = centerY - totalShapesHeight / 2 + (totalShapesHeight - numShapesToDraw * (shapeHeight + patternSpacing)) / 2
-
-
-            // Draw the pattern based on the shape and rank
-            for (i in 0 until numShapesToDraw) {
-                // Translate and draw the shape at the appropriate position
-                canvas.save()
-                canvas.translate(startX, startY + i * (shapeHeight + patternSpacing))
-                canvas.drawPath(shapePath, patternPaint)
-                canvas.restore()
-            }
-        } else if (shade == "Open" ) {
-            // Set the frame line color based on the colorX variable
-            patternPaint.color = when (colorX) {
-                "Red" -> morandiColors[0]
-                "Green" -> morandiColors[1]
-                "Purple" -> morandiColors[2]
-                else -> morandiColors[3] // Default color if "color" has an unknown value
-            }
-
-            // Set the stroke width for the frame line
-            patternPaint.strokeWidth = 7.0f
-
-
-            // Draw the stroke pattern
-            val centerX = rect.centerX()
-            val centerY = rect.centerY()
-
-            // Get the shape path and its dimensions
-            val shapePathData = getShapePath(shape.toString())
-            val shapePath = shapePathData.first
-            val shapeWidth = shapePathData.second
-            val shapeHeight = shapePathData.third
-            val patternSpacing = 10f
-
-            // Calculate the number of shapes that can fit in the card's height
-            val numShapesHeight = (rect.height() / (shapeHeight + patternSpacing)).toInt()
-
-            // Calculate the total height occupied by the shapes
-            val totalShapesHeight = numShapesHeight * (shapeHeight + patternSpacing) - patternSpacing
-
-            // Determine the number of shapes to draw based on the rank
-            val numShapesToDraw = when (rank) {
-                "One" -> 1
-                "Two" -> 2
-                "Three" -> 3
-                else -> 0
-            }
-
-            // Calculate the starting position of the pattern to align it at the center
-            val startX = centerX - shapeWidth / 2
-            val startY = centerY - totalShapesHeight / 2 + (totalShapesHeight - numShapesToDraw * (shapeHeight + patternSpacing)) / 2
-
-            // Draw the pattern based on the shape and rank
-            for (i in 0 until numShapesToDraw) {
-                // Translate and draw the shape's stroke at the appropriate position
-                canvas.save()
-                canvas.translate(startX, startY + i * (shapeHeight + patternSpacing))
-                canvas.drawPath(shapePath, patternPaint)
-
-                canvas.restore()
-            }
-        }else if ( shade == "Striped"){
-            // Set the stripe pattern color based on the colorX variable
-            patternPaint.color =  when (colorX) {
-                "Red" -> morandiColors[0]
-                "Green" -> morandiColors[1]
-                "Purple" -> morandiColors[2]
-                else -> morandiColors[3] // Default color if "color" has an unknown value
-            }
-
-            val centerX = rect.centerX()
-            val centerY = rect.centerY()
-
-            // Get the shape path and its dimensions
-            val shapePathData = getShapePath(shape.toString())
-            val shapePath = shapePathData.first
-            val shapeWidth = shapePathData.second
-            val shapeHeight = shapePathData.third
-            val patternSpacing = 10f
-
-            // Calculate the number of shapes that can fit in the card's height
-            val numShapesHeight = (rect.height() / (shapeHeight + patternSpacing)).toInt()
-
-            // Calculate the total height occupied by the shapes
-            val totalShapesHeight = numShapesHeight * (shapeHeight + patternSpacing) - patternSpacing
-
-            // Determine the number of shapes to draw based on the rank
-            val numShapesToDraw = when (rank) {
-                "One" -> 1
-                "Two" -> 2
-                "Three" -> 3
-                else -> 0
-            }
-
-            // Calculate the starting position of the pattern to align it at the center
-            val startX = centerX - shapeWidth / 2
-            val startY = centerY - totalShapesHeight / 2 + (totalShapesHeight - numShapesToDraw * (shapeHeight + patternSpacing)) / 2
-
-            // Draw the striped pattern based on the shape and rank
-            for (i in 0 until numShapesToDraw) {
-                // Translate and draw the shape filled with stripes at the appropriate position
-                canvas.save()
-                canvas.translate(startX, startY + i * (shapeHeight + patternSpacing))
-                drawStripedPattern(canvas, shapePath, patternPaint)
-                canvas.restore()
-            }
-
-
-        }
+        return rect
     }
 
     private fun drawStripedPattern(canvas: Canvas, shapePath: Path, patternPaint: Paint) {
@@ -323,7 +230,6 @@ class PlayingCardView : View {
         canvas.restore()
     }
 
-
     private fun getShapePath(shape: String): Triple<Path, Float, Float> {
         val path = Path()
         val bounds = RectF()
@@ -332,9 +238,9 @@ class PlayingCardView : View {
             "Diamond" -> {
                 // Define the diamond shape path
                 path.moveTo(0f, 0f)
-                path.lineTo(30f, 45f)
+                path.lineTo(30f, 30f)
                 path.lineTo(60f, 0f)
-                path.lineTo(30f, -45f)
+                path.lineTo(30f, -30f)
                 path.close()
             }
             "Squiggle" -> {
@@ -350,8 +256,8 @@ class PlayingCardView : View {
             }
             "Oval" -> {
                 // Define the oval shape path
-                val ovalRect = RectF(0f, -30f, 120f, 30f) // Adjust the width to elongate the oval
-                val cornerRadius = 30f // Adjust the corner radius to make the ends more rounded
+                val ovalRect = RectF(0f, -20f, 100f, 20f) // Adjust the width to elongate the oval
+                val cornerRadius = 20f // Adjust the corner radius to make the ends more rounded
                 path.addRoundRect(ovalRect, cornerRadius, cornerRadius, Path.Direction.CW)
             }
             else -> {
