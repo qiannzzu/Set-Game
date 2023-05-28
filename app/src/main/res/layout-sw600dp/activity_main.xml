@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="8dp"
+    android:divider="?android:listDivider"
+    android:showDividers="middle"
+    tools:context=".MainActivity"
+    android:orientation="horizontal">
+
+    <fragment
+        android:id="@+id/gameFragment"
+        android:name="com.example.playingcard.Game"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="@integer/game_weight_on_tablet"/>
+    <fragment
+        android:id="@+id/historyFraagment"
+        android:name="com.example.playingcard.History"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="@integer/history_weight_on_tablet"/>
+
+</LinearLayout>

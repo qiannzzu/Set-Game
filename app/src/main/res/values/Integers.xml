@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <integer name="eachCol_contains">3</integer>
+    <integer name="default_cards">12</integer>
+    <integer name="game_weight_on_tablet">3</integer>
+    <integer name="history_weight_on_tablet">2</integer>
+</resources>
