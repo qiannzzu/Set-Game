@@ -30,19 +30,14 @@ private const val ARG_PARAM2 = "param2"
  * create an instance of this fragment.
  */
 class Game : Fragment() {
-    // TODO: Rename and change types of parameters
     private val model: SharedViewModel by activityViewModels()
 
     private var eachColContains: Int = 0
     private var DEFAULT_CARDS: Int = 0
-    //private var CARDS_ON_BOARD: Int = 0
     private var GAME_WEIGHT: Int = 0
     private var HISTORY_WEIGHT:Int = 0
     private var Row: Int = 0
-    private var buttonHeight: Int? = 0
-    //private val gameJudge= GameJudge()
     private var currentCardsOnBoard = mutableListOf<Card>()
-    //private var ChoosedCount = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -69,12 +64,6 @@ class Game : Fragment() {
         //gameJudge.initCard()
         //model.initCard()
         model.loadList()
-//        if(model.getOnBoard().isEmpty()){
-//            //model.initCard()
-//            //model.AddCard(DEFAULT_CARDS)
-//        }
-        //model.Shuffle(DEFAULT_CARDS)
-        //renderGrid()
         model.cardList.observe(viewLifecycleOwner, Observer {
             val allcards = it.toList()
             currentCardsOnBoard = mutableListOf<Card>()
@@ -108,7 +97,6 @@ class Game : Fragment() {
         //setRow()
         val cardsInfo = model.getOnBoard()
 
-        val main_row_linearlayout = rootView.findViewById<LinearLayout>(R.id.main_row_linearlayout)
         val gameRowLinearLayout = rootView.findViewById<LinearLayout>(R.id.game_row_linearlayout)
         gameRowLinearLayout.removeAllViews()
         var full_width = rootView.resources.displayMetrics.widthPixels
@@ -124,43 +112,20 @@ class Game : Fragment() {
         val AddBTN: Button = rootView.findViewById<Button>(R.id.AddBTN)
         val HistoryBTN:Button = rootView.findViewById<Button>(R.id.HistoryBTN)
         RestartBTN.setOnClickListener {
-            //CARDS_ON_BOARD = DEFAULT_CARDS
-            //model.setAmount(DEFAULT_CARDS)
-            //setRow()
-            //gameJudge.initCard()
             model.reloadList(DEFAULT_CARDS)
-            //model.initCard()
-            //model.AddCard(DEFAULT_CARDS)
-            //model.setAmountOnBoard(DEFAULT_CARDS)
-            //CARDS_ON_BOARD = model.getAmountOnBoard()
-            //setRow()
-//            currentCardsOnBoard = mutableListOf<Card>()
-//            val allcards = gameJudge.getAllCards()
-//            gameJudge.setCardHistory(allcards)
-//            gameJudge.setHistoryCount(-1)
-            //val allcards = model.getAllCards()
-            //model.setCardHistory(allcards)
-            //model.setHistoryCountsTo(-1)
-            //renderGrid()
         }
         AddBTN.setOnClickListener {
             val cards_onBoard_count = getOnBoardAmount()
-            //if(CARDS_ON_BOARD<=(gameJudge.getAvailable().size - 3)) {
             if(cards_onBoard_count<=(model.getAvailable().size - 3)) {
-                //CARDS_ON_BOARD += 3
                 model.AddCard(cards_onBoard_count+3)
-                //model.setAmountOnBoard(CARDS_ON_BOARD)
-                //setRow()
-                //renderGrid()
             }
             else{Toast.makeText(context, "All Cards is in the display!!", Toast.LENGTH_SHORT).show()}
         }
         HistoryBTN.setOnClickListener {
             Toast.makeText(context,
-                //"Completed Round: " + (gameJudge.getHistoryCount() +1 ).toString(),
                 "Completed Round: " + (model.getHistoryCounts() ).toString(),
                 Toast.LENGTH_SHORT).show()
-            //
+
             if(parentFragment!=null){
                 val action = GameDirections.actionGameToHistory()
                 findNavController().navigate(action)
@@ -177,9 +142,6 @@ class Game : Fragment() {
         val cardheight = ((full_height * GAME_HEIGHT_PERCENTAGE) / Row).toInt()
         val cardwidth = ((full_width) / eachColContains * GLOBAL_WIDTH_PERCENTAGE).toInt()
 
-//        val cardsInfo = gameJudge.getShuffle(currentCardsOnBoard, CARDS_ON_BOARD);
-//        val target_amount = model.getAmountOnBoard()
-//        model.Shuffle(targetAmount = CARDS_ON_BOARD)
 
         for(i in 0 until Row){
             val aRow = LinearLayout(rootView.context)
@@ -204,36 +166,23 @@ class Game : Fragment() {
                     else { count -= 1 }
 
                     if(count<=3){
-                        //val cardInfoStr = card.rank+card.shape+card.shade+card.color
-                        //Toast.makeText(context, cardInfoStr, Toast.LENGTH_SHORT).show()
-//                        gameJudge.setChoose(cardInfo, !cardInfo.choose)
                         model.setChoose(cardInfo, !cardInfo.choose)
                         card.choose = !card.choose
 
                         if(count==3)
                         {
-//                            val judge = gameJudge.Judge()
                             val judge = model.Judge()
                             if(judge){
                                 Toast.makeText(context,
-                                    //"Correct pair, history count = "+(gameJudge.getHistoryCount()+1).toString(),
                                     "Correct pair, history count = "+(model.getHistoryCounts()).toString(),
                                     Toast.LENGTH_SHORT).show()
-                                //val removeCards = gameJudge.getChosenCard()
-                                //val removeCards = model.getChosenCard()
-                                //for(rc in removeCards){ currentCardsOnBoard.remove(rc) }
-//                                gameJudge.clearChosenCards()
                                 model.clearChosenCards()
                                 //ChoosedCount = 0
                                 val cards_onBoard_count = model.getOnBoard().size
                                 if(cards_onBoard_count >= DEFAULT_CARDS){
-                                    //if already more than 12
-                                    //CARDS_ON_BOARD -=3
                                     model.AddCard(cards_onBoard_count-3)
-                                    //model.setAmount(CARDS_ON_BOARD)
                                     setRow()
                                 }
-//                                else if(gameJudge.getAvailable().size <= DEFAULT_CARDS){
                                 else if(model.getAvailable().size <= DEFAULT_CARDS){
                                     //if available cards less than 12
                                     model.AddCard(cards_onBoard_count)
@@ -244,8 +193,6 @@ class Game : Fragment() {
                                     model.AddCard(DEFAULT_CARDS)
                                     setRow()
                                 }
-                                //model.saveAll()
-                                //renderGrid()
                             }
                             else{
                                 Toast.makeText(context,
@@ -260,23 +207,13 @@ class Game : Fragment() {
 
                 }
 
-                val displaypmetric = DisplayMetrics()
                 card.layoutParams = ViewGroup.LayoutParams(cardwidth,cardheight)
 
                 aRow.addView(card)
             }
 
             gameRowLinearLayout.addView(aRow)
-            //currentCardsOnBoard = cardsInfo
         }
     }
 
-    private fun saveData()
-    {
-        //val historyCount = gameJudge.getHistoryCount()
-        //val card_on_board_count = currentCardsOnBoard.size
-        //val
-        //model.saveAll(historyCount = )
-        //currentCardsOnBoard
-    }
 }

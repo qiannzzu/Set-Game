@@ -8,8 +8,5 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-//        val cardView = findViewById<PlayingCardView>(R.id.cardView)
-//        cardView.rank = "9"
-//        cardView.suit = "♥"
     }
 }

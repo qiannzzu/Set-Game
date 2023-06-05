@@ -32,7 +32,6 @@ class History : Fragment() {
     private var DEFAULT_LEAST_CARD:Int = 0
     private var Row: Int = 0
     private var historyCards: MutableList<Card> = mutableListOf<Card>()
-    private val gameJudge= GameJudge()
     private val model:SharedViewModel by activityViewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
